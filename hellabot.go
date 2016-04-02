@@ -12,6 +12,8 @@ import (
 	log "gopkg.in/inconshreveable/log15.v2"
 	logext "gopkg.in/inconshreveable/log15.v2/ext"
 
+	"golang.org/x/net/proxy"
+
 	"bytes"
 	"crypto/tls"
 	"encoding/base64"
@@ -43,6 +45,9 @@ type Bot struct {
 	SSL           bool
 	SASL          bool
 	HijackSession bool
+	// Socks5 Proxy
+	Socks    	  bool
+    SocksHost     string
 	// This bots nick
 	Nick string
 	// Duration to wait between sending of messages to avoid being
@@ -101,7 +106,14 @@ func (bot *Bot) connect(host string) (err error) {
 	bot.Debug("Connecting")
 	if bot.SSL {
 		bot.con, err = tls.Dial("tcp", host, &bot.TLSConfig)
-	} else {
+	} else if bot.Socks {
+        socks, err := proxy.SOCKS5("tcp", bot.SocksHost, nil, proxy.Direct)
+        if err != nil {
+            panic(err)
+        }
+        perhost := proxy.NewPerHost(socks, nil)
+        bot.con, err = perhost.Dial("tcp", host)
+    } else {
 		bot.con, err = net.Dial("tcp", host)
 	}
 	return

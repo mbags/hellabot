@@ -17,12 +17,16 @@ func main() {
 	flag.Parse()
 
 	hijackSession := func(bot *hbot.Bot) {
-		bot.HijackSession = true
+		bot.HijackSession = false
 	}
 	channels := func(bot *hbot.Bot) {
 		bot.Channels = []string{"#test"}
 	}
-	irc, err := hbot.NewBot(*serv, *nick, hijackSession, channels)
+	proxy := func(bot *hbot.Bot) {
+        bot.Socks = true
+        bot.SocksHost = "localhost:9050"
+    }
+	irc, err := hbot.NewBot(*serv, *nick, hijackSession, channels, proxy)
 	if err != nil {
 		panic(err)
 	}
